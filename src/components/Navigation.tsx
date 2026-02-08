@@ -1,6 +1,6 @@
-import { Home, BookOpen, Sparkles, CircleDot } from 'lucide-react';
+import { Home, BookOpen, Sparkles, CircleDot, Settings, ClipboardCheck } from 'lucide-react';
 
-type TabType = 'home' | 'quran' | 'adhkar' | 'tasbeeh';
+type TabType = 'home' | 'quran' | 'adhkar' | 'tasbeeh' | 'accountability' | 'settings';
 
 interface NavigationProps {
   activeTab: TabType;
@@ -12,12 +12,14 @@ const tabs = [
   { id: 'quran' as TabType, label: 'القرآن', icon: BookOpen },
   { id: 'adhkar' as TabType, label: 'الأذكار', icon: Sparkles },
   { id: 'tasbeeh' as TabType, label: 'المسبحة', icon: CircleDot },
+  { id: 'accountability' as TabType, label: 'المحاسبة', icon: ClipboardCheck },
+  { id: 'settings' as TabType, label: 'الإعدادات', icon: Settings },
 ];
 
 export function Navigation({ activeTab, onTabChange }: NavigationProps) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/50">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-2">
         <div className="flex justify-around py-2">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -28,7 +30,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
                 className={`
-                  flex flex-col items-center py-2 px-4 rounded-xl transition-all
+                  flex flex-col items-center py-2 px-2 rounded-xl transition-all
                   ${isActive 
                     ? 'text-primary' 
                     : 'text-muted-foreground hover:text-foreground'
@@ -41,7 +43,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
                 `}>
                   <Icon className="w-5 h-5" />
                 </div>
-                <span className="text-xs mt-1 font-medium">{tab.label}</span>
+                <span className="text-[10px] mt-1 font-medium">{tab.label}</span>
               </button>
             );
           })}

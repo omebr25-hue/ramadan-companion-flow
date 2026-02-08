@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { ChevronRight, ChevronLeft, Check, BookOpen, Settings2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, BookOpen, Settings2, BookMarked } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuranWird } from '@/hooks/useQuranWird';
 import { getJuzName } from '@/data/quran';
+import { QuranReader } from '@/components/QuranReader';
 
 export function QuranView() {
   const { 
@@ -19,10 +20,27 @@ export function QuranView() {
   
   const [viewPage, setViewPage] = useState(todayWird.currentPage);
   const [showSettings, setShowSettings] = useState(false);
+  const [showReader, setShowReader] = useState(false);
   
   const pageInfo = getPageInfo(viewPage);
   const progress = getProgress();
   const isPageRead = completedPages.includes(viewPage);
+
+  if (showReader) {
+    return (
+      <div className="animate-fade-in">
+        <div className="mb-4">
+          <Button variant="ghost" onClick={() => setShowReader(false)}>
+            ← العودة للورد
+          </Button>
+        </div>
+        <QuranReader 
+          initialPage={viewPage} 
+          onPageRead={(page) => markPageAsRead(page)}
+        />
+      </div>
+    );
+  }
 
   if (showSettings) {
     return (
@@ -126,9 +144,14 @@ export function QuranView() {
             {todayWird.totalPages} صفحة اليوم
           </p>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
-          <Settings2 className="w-5 h-5" />
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="icon" onClick={() => setShowReader(true)}>
+            <BookMarked className="w-5 h-5" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
+            <Settings2 className="w-5 h-5" />
+          </Button>
+        </div>
       </div>
 
       {/* Overall Progress */}
@@ -188,6 +211,15 @@ export function QuranView() {
         </div>
       </div>
 
+      {/* Open Reader Button */}
+      <Button 
+        onClick={() => setShowReader(true)}
+        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6"
+      >
+        <BookOpen className="w-5 h-5 ml-2" />
+        فتح المصحف
+      </Button>
+
       {/* Page Viewer */}
       <div className="glass-card p-6">
         <div className="flex items-center justify-between mb-6">
@@ -216,17 +248,8 @@ export function QuranView() {
           </Button>
         </div>
 
-        {/* Quran Page Placeholder */}
-        <div className="bg-secondary/30 rounded-xl p-8 min-h-[300px] flex items-center justify-center border border-border/50">
-          <div className="text-center">
-            <BookOpen className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-muted-foreground">صفحة {viewPage}</p>
-            <p className="text-sm text-muted-foreground/70">سورة {pageInfo.surahName}</p>
-          </div>
-        </div>
-
         {/* Mark as Read */}
-        <div className="mt-4 flex gap-3">
+        <div className="flex gap-3">
           <Button
             onClick={() => markPageAsRead(viewPage)}
             disabled={isPageRead}
