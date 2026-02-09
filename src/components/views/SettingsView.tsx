@@ -13,8 +13,7 @@ import {
   ChevronLeft,
   Clock,
   BookOpen,
-  Volume2,
-  VolumeX,
+  Globe,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -23,6 +22,7 @@ import { Slider } from '@/components/ui/slider';
 import { useSettings } from '@/hooks/useSettings';
 import { useNotifications } from '@/hooks/useNotifications';
 import { toast } from '@/hooks/use-toast';
+import { countries, getCitiesByCountry } from '@/data/locations';
 
 export function SettingsView() {
   const { settings, updateSettings, updateNotifications, resetSettings, applyTheme } = useSettings();
@@ -31,7 +31,16 @@ export function SettingsView() {
 
   const handleThemeChange = (theme: 'dark' | 'light') => {
     updateSettings({ theme });
-    setTimeout(applyTheme, 0);
+    // تطبيق فوري عبر applyTheme مع تمرير القيمة مباشرة
+    applyTheme(theme);
+  };
+
+  const handleCountryChange = (country: string) => {
+    const citiesForCountry = getCitiesByCountry(country);
+    updateSettings({ 
+      country, 
+      city: citiesForCountry[0] || '' 
+    });
   };
 
   const handleExport = () => {
@@ -102,6 +111,8 @@ export function SettingsView() {
       });
     }
   };
+
+  const availableCities = getCitiesByCountry(settings.country);
 
   const sections = [
     {
@@ -354,25 +365,35 @@ export function SettingsView() {
         {activeSection === 'location' && (
           <div className="glass-card p-6 space-y-6">
             <div>
-              <Label className="text-foreground mb-2 block">المدينة</Label>
-              <input
-                type="text"
-                value={settings.city}
-                onChange={(e) => updateSettings({ city: e.target.value })}
-                className="w-full bg-secondary/50 rounded-xl p-3 text-foreground"
-                placeholder="أدخل اسم المدينة"
-              />
+              <Label className="text-foreground mb-2 block">
+                <Globe className="w-4 h-4 inline ml-1" />
+                الدولة
+              </Label>
+              <select
+                value={settings.country}
+                onChange={(e) => handleCountryChange(e.target.value)}
+                className="w-full bg-secondary/50 rounded-xl p-3 text-foreground border border-border"
+              >
+                {countries.map((c) => (
+                  <option key={c.code} value={c.name}>{c.name}</option>
+                ))}
+              </select>
             </div>
 
             <div>
-              <Label className="text-foreground mb-2 block">الدولة</Label>
-              <input
-                type="text"
-                value={settings.country}
-                onChange={(e) => updateSettings({ country: e.target.value })}
-                className="w-full bg-secondary/50 rounded-xl p-3 text-foreground"
-                placeholder="أدخل اسم الدولة"
-              />
+              <Label className="text-foreground mb-2 block">
+                <MapPin className="w-4 h-4 inline ml-1" />
+                المدينة / المحافظة
+              </Label>
+              <select
+                value={settings.city}
+                onChange={(e) => updateSettings({ city: e.target.value })}
+                className="w-full bg-secondary/50 rounded-xl p-3 text-foreground border border-border"
+              >
+                {availableCities.map((city) => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -380,20 +401,22 @@ export function SettingsView() {
               <select
                 value={settings.calculationMethod}
                 onChange={(e) => updateSettings({ calculationMethod: e.target.value })}
-                className="w-full bg-secondary/50 rounded-xl p-3 text-foreground"
+                className="w-full bg-secondary/50 rounded-xl p-3 text-foreground border border-border"
               >
                 <option value="UmmAlQura">أم القرى</option>
                 <option value="Egyptian">الهيئة المصرية</option>
                 <option value="Karachi">جامعة كراتشي</option>
                 <option value="ISNA">الجمعية الإسلامية لأمريكا الشمالية</option>
                 <option value="MWL">رابطة العالم الإسلامي</option>
+                <option value="Tehran">جامعة طهران</option>
+                <option value="Jafari">المذهب الجعفري</option>
               </select>
             </div>
 
             <div className="p-4 bg-accent/10 rounded-xl">
               <p className="text-sm text-muted-foreground">
                 <Clock className="w-4 h-4 inline ml-1" />
-                سيتم حساب أوقات الصلاة بناءً على موقعك المحدد
+                سيتم حساب أوقات الصلاة بناءً على: {settings.city}، {settings.country}
               </p>
             </div>
           </div>
@@ -492,9 +515,20 @@ export function SettingsView() {
         })}
       </div>
 
+      {/* معلومات الموقع الحالي */}
+      <div className="glass-card p-4">
+        <div className="flex items-center gap-3">
+          <MapPin className="w-5 h-5 text-accent" />
+          <div>
+            <p className="text-sm font-medium text-foreground">{settings.city}، {settings.country}</p>
+            <p className="text-xs text-muted-foreground">الموقع الحالي لحساب أوقات الصلاة</p>
+          </div>
+        </div>
+      </div>
+
       <div className="text-center pt-4">
         <p className="text-xs text-muted-foreground">المرافق الرمضاني الذكي</p>
-        <p className="text-xs text-muted-foreground">الإصدار 1.0.0</p>
+        <p className="text-xs text-muted-foreground">الإصدار 2.0.0</p>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { useLocalStorage } from './useLocalStorage';
+import { useCallback, useEffect } from 'react';
 
 export interface AppSettings {
   // المظهر
@@ -14,7 +15,7 @@ export interface AppSettings {
   notifications: {
     enabled: boolean;
     prayerTimes: boolean;
-    prayerReminder: number; // دقائق قبل الأذان
+    prayerReminder: number;
     quranWird: boolean;
     quranWirdTime: string;
     morningAdhkar: boolean;
@@ -22,9 +23,9 @@ export interface AppSettings {
     eveningAdhkar: boolean;
     eveningAdhkarTime: string;
     iftarReminder: boolean;
-    iftarReminderTime: number; // دقائق قبل الإفطار
+    iftarReminderTime: number;
     suhoorReminder: boolean;
-    suhoorReminderTime: number; // دقائق قبل الإمساك
+    suhoorReminderTime: number;
     doNotDisturb: boolean;
     doNotDisturbStart: string;
     doNotDisturbEnd: string;
@@ -47,8 +48,8 @@ export interface AppSettings {
 const DEFAULT_SETTINGS: AppSettings = {
   theme: 'dark',
   fontSize: 'medium',
-  city: 'مكة المكرمة',
-  country: 'السعودية',
+  city: 'صنعاء',
+  country: 'اليمن',
   calculationMethod: 'UmmAlQura',
   notifications: {
     enabled: true,
@@ -111,14 +112,30 @@ export function useSettings() {
     setSettings(DEFAULT_SETTINGS);
   };
 
-  const applyTheme = () => {
+  // تطبيق الثيم مباشرة بناءً على القيمة المحددة
+  const applyTheme = useCallback((themeOverride?: 'dark' | 'light' | 'auto') => {
+    const theme = themeOverride || settings.theme;
     const root = document.documentElement;
-    if (settings.theme === 'light') {
+    
+    if (theme === 'light') {
       root.classList.add('light');
-    } else {
+    } else if (theme === 'dark') {
       root.classList.remove('light');
+    } else {
+      // auto: detect system preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) {
+        root.classList.remove('light');
+      } else {
+        root.classList.add('light');
+      }
     }
-  };
+  }, [settings.theme]);
+
+  // تطبيق الثيم عند تغييره
+  useEffect(() => {
+    applyTheme();
+  }, [applyTheme]);
 
   const getFontSizeClass = () => {
     const sizes = {
