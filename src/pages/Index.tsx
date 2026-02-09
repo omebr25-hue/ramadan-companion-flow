@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Stars } from '@/components/Stars';
 import { Header } from '@/components/Header';
 import { Navigation } from '@/components/Navigation';
@@ -14,12 +14,8 @@ type TabType = 'home' | 'quran' | 'adhkar' | 'tasbeeh' | 'accountability' | 'set
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
-  const { settings, applyTheme } = useSettings();
-
-  // تطبيق الثيم عند تحميل الصفحة
-  useEffect(() => {
-    applyTheme();
-  }, [settings.theme]);
+  // useSettings now auto-applies theme via its internal useEffect
+  useSettings();
 
   const renderView = () => {
     switch (activeTab) {
