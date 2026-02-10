@@ -34,15 +34,33 @@ export function useTasbeeh() {
     });
   }, [setSession]);
 
+  const triggerHaptic = useCallback((type: 'light' | 'medium' | 'heavy' = 'light') => {
+    if ('vibrate' in navigator) {
+      const patterns = { light: [10], medium: [30], heavy: [50, 30, 50] };
+      navigator.vibrate(patterns[type]);
+    }
+  }, []);
+
   const increment = useCallback(() => {
     if (!session) return;
+
+    const newCount = session.count + 1;
+    
+    // Haptic feedback at milestones
+    if (newCount % 33 === 0) {
+      triggerHaptic('heavy');
+    } else if (newCount % 10 === 0) {
+      triggerHaptic('medium');
+    } else {
+      triggerHaptic('light');
+    }
 
     setSession(prev => {
       if (!prev) return prev;
       return { ...prev, count: prev.count + 1 };
     });
     setTotalCounts(prev => prev + 1);
-  }, [session, setSession, setTotalCounts]);
+  }, [session, setSession, setTotalCounts, triggerHaptic]);
 
   const reset = useCallback(() => {
     if (!session) return;
