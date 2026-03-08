@@ -13,6 +13,7 @@ import { WeeklySummaryView } from '@/components/views/WeeklySummaryView';
 import { FavoritesView } from '@/components/views/FavoritesView';
 import { CalendarView } from '@/components/views/CalendarView';
 import { useSettings } from '@/hooks/useSettings';
+import { useNotifications } from '@/hooks/useNotifications';
 
 type TabType = 'home' | 'quran' | 'adhkar' | 'tasbeeh' | 'accountability' | 'settings' | 'summary' | 'favorites' | 'calendar';
 
@@ -20,6 +21,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [menuOpen, setMenuOpen] = useState(false);
   useSettings();
+  useNotifications(); // تفعيل نظام الإشعارات
 
   const renderView = () => {
     switch (activeTab) {
