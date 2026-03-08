@@ -130,6 +130,10 @@ export function usePrayerTimes() {
     setManualOverrides(prev => ({ ...prev, ...updates }));
   }, [setManualOverrides]);
 
+  const resetOverrides = useCallback(() => {
+    setManualOverrides({});
+  }, [setManualOverrides]);
+
   const hasOverrides = Object.keys(manualOverrides).length > 0;
 
   return {
@@ -140,6 +144,7 @@ export function usePrayerTimes() {
     error,
     refetch: fetchPrayerTimes,
     updatePrayerTime,
+    updateMultiplePrayerTimes,
     resetOverrides,
     hasOverrides,
   };
