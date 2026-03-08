@@ -126,8 +126,8 @@ export function usePrayerTimes() {
     setManualOverrides(prev => ({ ...prev, [key]: time }));
   }, [setManualOverrides]);
 
-  const resetOverrides = useCallback(() => {
-    setManualOverrides({});
+  const updateMultiplePrayerTimes = useCallback((updates: Partial<PrayerTimesData>) => {
+    setManualOverrides(prev => ({ ...prev, ...updates }));
   }, [setManualOverrides]);
 
   const hasOverrides = Object.keys(manualOverrides).length > 0;
