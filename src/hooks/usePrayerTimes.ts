@@ -126,6 +126,10 @@ export function usePrayerTimes() {
     setManualOverrides(prev => ({ ...prev, [key]: time }));
   }, [setManualOverrides]);
 
+  const updateMultiplePrayerTimes = useCallback((updates: Partial<PrayerTimesData>) => {
+    setManualOverrides(prev => ({ ...prev, ...updates }));
+  }, [setManualOverrides]);
+
   const resetOverrides = useCallback(() => {
     setManualOverrides({});
   }, [setManualOverrides]);
@@ -140,6 +144,7 @@ export function usePrayerTimes() {
     error,
     refetch: fetchPrayerTimes,
     updatePrayerTime,
+    updateMultiplePrayerTimes,
     resetOverrides,
     hasOverrides,
   };

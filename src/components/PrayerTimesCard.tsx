@@ -18,7 +18,7 @@ export function PrayerTimesCard() {
   const [timeToNext, setTimeToNext] = useState<string>('');
   const [editMode, setEditMode] = useState(false);
   const [editValues, setEditValues] = useState<Partial<PrayerTimesData>>({});
-  const { prayerTimes, loading, error, refetch, updatePrayerTime, resetOverrides, hasOverrides } = usePrayerTimes();
+  const { prayerTimes, loading, error, refetch, updateMultiplePrayerTimes, resetOverrides, hasOverrides } = usePrayerTimes();
   const { settings } = useSettings();
 
   useEffect(() => {
@@ -66,14 +66,15 @@ export function PrayerTimesCard() {
   };
 
   const handleSaveEdit = () => {
+    const changes: Partial<PrayerTimesData> = {};
     Object.entries(editValues).forEach(([key, value]) => {
-      if (value && prayerTimes && value !== prayerTimes[key as keyof PrayerTimesData]) {
-        // Only save if actually changed from current
-      }
       if (value) {
-        updatePrayerTime(key as keyof PrayerTimesData, value);
+        changes[key as keyof PrayerTimesData] = value;
       }
     });
+    if (Object.keys(changes).length > 0) {
+      updateMultiplePrayerTimes(changes);
+    }
     setEditMode(false);
   };
 
