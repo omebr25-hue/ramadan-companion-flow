@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSettings } from './useSettings';
+import { useLocalStorage } from './useLocalStorage';
 
 export interface PrayerTimesData {
   fajr: string;
@@ -10,7 +11,6 @@ export interface PrayerTimesData {
   isha: string;
 }
 
-// خريطة المدن مع الإحداثيات
 const cityCoordinates: Record<string, { lat: number; lng: number }> = {
   'صنعاء': { lat: 15.3694, lng: 44.1910 },
   'عدن': { lat: 12.7855, lng: 45.0187 },
@@ -46,7 +46,6 @@ const cityCoordinates: Record<string, { lat: number; lng: number }> = {
   'لندن': { lat: 51.5074, lng: -0.1278 },
 };
 
-// طرق الحساب
 const calculationMethods: Record<string, number> = {
   'UmmAlQura': 4,
   'Egyptian': 5,
@@ -64,7 +63,8 @@ const calculationMethods: Record<string, number> = {
 
 export function usePrayerTimes() {
   const { settings } = useSettings();
-  const [prayerTimes, setPrayerTimes] = useState<PrayerTimesData | null>(null);
+  const [apiTimes, setApiTimes] = useState<PrayerTimesData | null>(null);
+  const [manualOverrides, setManualOverrides] = useLocalStorage<Partial<PrayerTimesData>>('prayer-times-overrides', {});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,59 +76,37 @@ export function usePrayerTimes() {
       const coords = cityCoordinates[settings.city];
       const method = calculationMethods[settings.calculationMethod] ?? 4;
       
+      const today = new Date();
+      const dd = String(today.getDate()).padStart(2, '0');
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const yyyy = today.getFullYear();
+
+      let url: string;
       if (coords) {
-        const today = new Date();
-        const dd = String(today.getDate()).padStart(2, '0');
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const yyyy = today.getFullYear();
-        
-        const response = await fetch(
-          `https://api.aladhan.com/v1/timings/${dd}-${mm}-${yyyy}?latitude=${coords.lat}&longitude=${coords.lng}&method=${method}`
-        );
-        
-        if (!response.ok) throw new Error('فشل في جلب المواقيت');
-        
-        const data = await response.json();
-        const timings = data.data.timings;
-        
-        setPrayerTimes({
-          fajr: timings.Fajr,
-          sunrise: timings.Sunrise,
-          dhuhr: timings.Dhuhr,
-          asr: timings.Asr,
-          maghrib: timings.Maghrib,
-          isha: timings.Isha,
-        });
+        url = `https://api.aladhan.com/v1/timings/${dd}-${mm}-${yyyy}?latitude=${coords.lat}&longitude=${coords.lng}&method=${method}`;
       } else {
-        // إذا لم نجد إحداثيات المدينة، نستخدم API بالاسم
-        const response = await fetch(
-          `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(settings.city)}&country=${encodeURIComponent(settings.country)}&method=${method}`
-        );
-        
-        if (!response.ok) throw new Error('فشل في جلب المواقيت');
-        
-        const data = await response.json();
-        const timings = data.data.timings;
-        
-        setPrayerTimes({
-          fajr: timings.Fajr,
-          sunrise: timings.Sunrise,
-          dhuhr: timings.Dhuhr,
-          asr: timings.Asr,
-          maghrib: timings.Maghrib,
-          isha: timings.Isha,
-        });
+        url = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(settings.city)}&country=${encodeURIComponent(settings.country)}&method=${method}`;
       }
-    } catch (err) {
+
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('فشل في جلب المواقيت');
+      
+      const data = await response.json();
+      const timings = data.data.timings;
+      
+      setApiTimes({
+        fajr: timings.Fajr,
+        sunrise: timings.Sunrise,
+        dhuhr: timings.Dhuhr,
+        asr: timings.Asr,
+        maghrib: timings.Maghrib,
+        isha: timings.Isha,
+      });
+    } catch {
       setError('تعذر جلب المواقيت، تحقق من الاتصال');
-      // Fallback times
-      setPrayerTimes({
-        fajr: '05:07',
-        sunrise: '06:20',
-        dhuhr: '12:15',
-        asr: '15:30',
-        maghrib: '18:10',
-        isha: '19:25',
+      setApiTimes({
+        fajr: '05:07', sunrise: '06:20', dhuhr: '12:15',
+        asr: '15:30', maghrib: '18:10', isha: '19:25',
       });
     } finally {
       setLoading(false);
@@ -139,5 +117,30 @@ export function usePrayerTimes() {
     fetchPrayerTimes();
   }, [fetchPrayerTimes]);
 
-  return { prayerTimes, loading, error, refetch: fetchPrayerTimes };
+  // دمج المواقيت من API مع التعديلات اليدوية
+  const prayerTimes: PrayerTimesData | null = apiTimes
+    ? { ...apiTimes, ...manualOverrides }
+    : null;
+
+  const updatePrayerTime = useCallback((key: keyof PrayerTimesData, time: string) => {
+    setManualOverrides(prev => ({ ...prev, [key]: time }));
+  }, [setManualOverrides]);
+
+  const resetOverrides = useCallback(() => {
+    setManualOverrides({});
+  }, [setManualOverrides]);
+
+  const hasOverrides = Object.keys(manualOverrides).length > 0;
+
+  return {
+    prayerTimes,
+    apiTimes,
+    manualOverrides,
+    loading,
+    error,
+    refetch: fetchPrayerTimes,
+    updatePrayerTime,
+    resetOverrides,
+    hasOverrides,
+  };
 }
