@@ -1,12 +1,12 @@
-import { Moon, Star, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Moon, Star } from 'lucide-react';
 import { useAppMode } from '@/hooks/useAppMode';
+import { MenuTrigger } from '@/components/Navigation';
 
 interface HeaderProps {
-  onSettingsClick?: () => void;
+  onMenuToggle: () => void;
 }
 
-export function Header({ onSettingsClick }: HeaderProps) {
+export function Header({ onMenuToggle }: HeaderProps) {
   const { mode, appName } = useAppMode();
 
   const getHijriDate = () => {
@@ -35,9 +35,7 @@ export function Header({ onSettingsClick }: HeaderProps) {
             </div>
           </div>
           
-          <Button variant="ghost" size="icon" onClick={onSettingsClick} className="hover:bg-secondary">
-            <Settings className="w-5 h-5" />
-          </Button>
+          <MenuTrigger onClick={onMenuToggle} />
         </div>
       </div>
     </header>

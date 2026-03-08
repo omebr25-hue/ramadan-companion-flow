@@ -11,34 +11,28 @@ import { SettingsView } from '@/components/views/SettingsView';
 import { AccountabilityView } from '@/components/views/AccountabilityView';
 import { WeeklySummaryView } from '@/components/views/WeeklySummaryView';
 import { FavoritesView } from '@/components/views/FavoritesView';
+import { CalendarView } from '@/components/views/CalendarView';
 import { useSettings } from '@/hooks/useSettings';
 
-type TabType = 'home' | 'quran' | 'adhkar' | 'tasbeeh' | 'accountability' | 'settings' | 'summary' | 'favorites';
+type TabType = 'home' | 'quran' | 'adhkar' | 'tasbeeh' | 'accountability' | 'settings' | 'summary' | 'favorites' | 'calendar';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
+  const [menuOpen, setMenuOpen] = useState(false);
   useSettings();
 
   const renderView = () => {
     switch (activeTab) {
-      case 'home':
-        return <HomeView onNavigate={setActiveTab} />;
-      case 'quran':
-        return <QuranView />;
-      case 'adhkar':
-        return <AdhkarView />;
-      case 'tasbeeh':
-        return <TasbeehView />;
-      case 'accountability':
-        return <AccountabilityView />;
-      case 'settings':
-        return <SettingsView />;
-      case 'summary':
-        return <WeeklySummaryView />;
-      case 'favorites':
-        return <FavoritesView />;
-      default:
-        return <HomeView onNavigate={setActiveTab} />;
+      case 'home': return <HomeView onNavigate={setActiveTab} />;
+      case 'quran': return <QuranView />;
+      case 'adhkar': return <AdhkarView />;
+      case 'tasbeeh': return <TasbeehView />;
+      case 'accountability': return <AccountabilityView />;
+      case 'settings': return <SettingsView />;
+      case 'summary': return <WeeklySummaryView />;
+      case 'favorites': return <FavoritesView />;
+      case 'calendar': return <CalendarView />;
+      default: return <HomeView onNavigate={setActiveTab} />;
     }
   };
 
@@ -48,13 +42,18 @@ const Index = () => {
       <DailyWelcome />
       
       <div className="relative z-10">
-        <Header />
+        <Header onMenuToggle={() => setMenuOpen(o => !o)} />
         
-        <main className="container mx-auto px-4 py-6 pb-28">
+        <main className="container mx-auto px-4 py-6 pb-8">
           {renderView()}
         </main>
         
-        <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+        <Navigation
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          isOpen={menuOpen}
+          onToggle={() => setMenuOpen(false)}
+        />
       </div>
     </div>
   );
