@@ -1,16 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Clock, Sunrise, Sun, Sunset, Moon } from 'lucide-react';
-import { PrayerTimes } from '@/types/ramadan';
-
-// Mock prayer times - in production, fetch from an API based on location
-const mockPrayerTimes: PrayerTimes = {
-  fajr: '04:45',
-  sunrise: '06:10',
-  dhuhr: '12:15',
-  asr: '15:30',
-  maghrib: '18:20',
-  isha: '19:45',
-};
+import { Clock, Sunrise, Sun, Sunset, Moon, RefreshCw, MapPin } from 'lucide-react';
+import { usePrayerTimes, PrayerTimesData } from '@/hooks/usePrayerTimes';
+import { useSettings } from '@/hooks/useSettings';
 
 const prayers = [
   { key: 'fajr', name: 'الفجر', icon: Moon },
@@ -23,23 +14,27 @@ const prayers = [
 
 export function PrayerTimesCard() {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [nextPrayer, setNextPrayer] = useState<string>('maghrib');
+  const [nextPrayer, setNextPrayer] = useState<string>('');
   const [timeToNext, setTimeToNext] = useState<string>('');
+  const { prayerTimes, loading, error, refetch } = usePrayerTimes();
+  const { settings } = useSettings();
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
-    // Calculate next prayer and time remaining
+    if (!prayerTimes) return;
+
     const now = currentTime;
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    let found = false;
 
     for (const prayer of prayers) {
-      const [hours, minutes] = mockPrayerTimes[prayer.key as keyof PrayerTimes].split(':').map(Number);
+      const timeStr = prayerTimes[prayer.key as keyof PrayerTimesData];
+      if (!timeStr) continue;
+      const [hours, minutes] = timeStr.split(':').map(Number);
       const prayerMinutes = hours * 60 + minutes;
 
       if (prayerMinutes > currentMinutes) {
@@ -48,15 +43,41 @@ export function PrayerTimesCard() {
         const h = Math.floor(diff / 60);
         const m = diff % 60;
         setTimeToNext(h > 0 ? `${h} ساعة و ${m} دقيقة` : `${m} دقيقة`);
+        found = true;
         break;
       }
     }
-  }, [currentTime]);
+
+    if (!found) {
+      setNextPrayer('fajr');
+      const [fh, fm] = (prayerTimes.fajr || '05:00').split(':').map(Number);
+      const fajrTomorrow = (24 * 60 - currentMinutes) + fh * 60 + fm;
+      const h = Math.floor(fajrTomorrow / 60);
+      const m = fajrTomorrow % 60;
+      setTimeToNext(`${h} ساعة و ${m} دقيقة`);
+    }
+  }, [currentTime, prayerTimes]);
+
+  if (loading && !prayerTimes) {
+    return (
+      <div className="glass-card p-6 animate-fade-in">
+        <div className="flex items-center justify-center gap-2 py-8">
+          <RefreshCw className="w-5 h-5 text-primary animate-spin" />
+          <span className="text-muted-foreground text-sm">جارٍ تحميل المواقيت...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="glass-card p-6 animate-fade-in">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-foreground">مواقيت الصلاة</h2>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-foreground">مواقيت الصلاة</h2>
+          <button onClick={refetch} className="p-1 rounded-lg hover:bg-secondary/50 transition-all">
+            <RefreshCw className={`w-3.5 h-3.5 text-muted-foreground ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
         <div className="flex items-center gap-2 text-muted-foreground">
           <Clock className="w-4 h-4" />
           <span className="text-sm font-mono">
@@ -65,22 +86,40 @@ export function PrayerTimesCard() {
         </div>
       </div>
 
-      {/* Next Prayer Highlight */}
-      <div className="bg-primary/10 rounded-xl p-4 mb-6 border border-primary/20">
-        <p className="text-sm text-muted-foreground mb-1">الصلاة القادمة</p>
-        <div className="flex items-center justify-between">
-          <span className="text-xl font-bold text-primary">
-            {prayers.find(p => p.key === nextPrayer)?.name}
-          </span>
-          <span className="text-sm text-muted-foreground">بعد {timeToNext}</span>
-        </div>
+      {/* Location */}
+      <div className="flex items-center justify-center gap-1.5 mb-4 text-muted-foreground">
+        <MapPin className="w-3.5 h-3.5" />
+        <span className="text-xs">{settings.city}، {settings.country}</span>
       </div>
+
+      {error && (
+        <p className="text-xs text-center text-destructive mb-3">{error}</p>
+      )}
+
+      {/* Next Prayer Highlight */}
+      {nextPrayer && (
+        <div className="bg-primary/10 rounded-xl p-4 mb-5 border border-primary/20">
+          <p className="text-sm text-muted-foreground mb-1">الصلاة القادمة</p>
+          <div className="flex items-center justify-between">
+            <span className="text-xl font-bold text-primary">
+              {prayers.find(p => p.key === nextPrayer)?.name}
+            </span>
+            <div className="text-left">
+              <span className="text-lg font-mono font-bold text-primary">
+                {prayerTimes?.[nextPrayer as keyof PrayerTimesData]}
+              </span>
+              <p className="text-xs text-muted-foreground">بعد {timeToNext}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Prayer Times Grid */}
       <div className="grid grid-cols-3 gap-3">
         {prayers.map((prayer) => {
           const Icon = prayer.icon;
           const isNext = prayer.key === nextPrayer;
+          const time = prayerTimes?.[prayer.key as keyof PrayerTimesData] || '--:--';
           
           return (
             <div
@@ -97,8 +136,8 @@ export function PrayerTimesCard() {
               <span className={`text-xs font-medium ${isNext ? 'text-primary' : 'text-foreground'}`}>
                 {prayer.name}
               </span>
-              <span className={`text-sm font-mono mt-1 ${isNext ? 'text-primary' : 'text-muted-foreground'}`}>
-                {mockPrayerTimes[prayer.key as keyof PrayerTimes]}
+              <span className={`text-sm font-mono mt-1 ${isNext ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
+                {time}
               </span>
             </div>
           );
