@@ -9,13 +9,6 @@ interface HeaderProps {
 export function Header({ onMenuToggle }: HeaderProps) {
   const { mode, appName } = useAppMode();
 
-  const getHijriDate = () => {
-    const today = new Date();
-    const hijriMonth = mode === 'ramadan' ? 'رمضان' : 'شوال';
-    const day = today.getDate();
-    return `${day} ${hijriMonth} ١٤٤٦`;
-  };
-
   return (
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/50">
       <div className="container mx-auto px-4 py-3">
@@ -29,10 +22,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
               )}
               <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-accent rounded-full" />
             </div>
-            <div>
-              <h1 className="text-lg font-bold gradient-text">{appName}</h1>
-              <p className="text-xs text-muted-foreground">{getHijriDate()}</p>
-            </div>
+            <h1 className="text-lg font-bold gradient-text">{appName}</h1>
           </div>
           
           <MenuTrigger onClick={onMenuToggle} />
