@@ -16,14 +16,30 @@ const defaultDhikrs = [
   'أَسْتَغْفِرُ اللهَ',
   'سُبْحَانَ اللهِ وَبِحَمْدِهِ',
   'لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللهِ',
+  'اللهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّد',
+  'حَسْبُنَا اللهُ وَنِعْمَ الْوَكِيلُ',
+  'سُبْحَانَ اللهِ وَبِحَمْدِهِ سُبْحَانَ اللهِ الْعَظِيمِ',
 ];
 
 const defaultTargets = [33, 100, 1000];
 
 export function useTasbeeh() {
   const [session, setSession] = useLocalStorage<TasbeehSession | null>('tasbeeh-session', null);
-  const [savedDhikrs] = useLocalStorage<string[]>('tasbeeh-saved-dhikrs', defaultDhikrs);
+  const [savedDhikrs, setSavedDhikrs] = useLocalStorage<string[]>('tasbeeh-saved-dhikrs', defaultDhikrs);
+  const [customDhikrs, setCustomDhikrs] = useLocalStorage<string[]>('tasbeeh-custom-dhikrs', []);
   const [totalCounts, setTotalCounts] = useLocalStorage<number>('tasbeeh-total-counts', 0);
+
+  const allDhikrs = [...savedDhikrs, ...customDhikrs.filter(d => !savedDhikrs.includes(d))];
+
+  const addCustomDhikr = useCallback((dhikr: string) => {
+    if (!dhikr.trim()) return;
+    if (allDhikrs.includes(dhikr.trim())) return;
+    setCustomDhikrs(prev => [...prev, dhikr.trim()]);
+  }, [allDhikrs, setCustomDhikrs]);
+
+  const removeCustomDhikr = useCallback((dhikr: string) => {
+    setCustomDhikrs(prev => prev.filter(d => d !== dhikr));
+  }, [setCustomDhikrs]);
 
   const startSession = useCallback((dhikr: string, target: number = 33) => {
     setSession({
@@ -46,7 +62,6 @@ export function useTasbeeh() {
 
     const newCount = session.count + 1;
     
-    // Haptic feedback at milestones
     if (newCount % 33 === 0) {
       triggerHaptic('heavy');
     } else if (newCount % 10 === 0) {
@@ -78,7 +93,8 @@ export function useTasbeeh() {
 
   return {
     session,
-    savedDhikrs,
+    savedDhikrs: allDhikrs,
+    customDhikrs,
     defaultTargets,
     totalCounts,
     startSession,
@@ -86,5 +102,7 @@ export function useTasbeeh() {
     reset,
     endSession,
     isComplete,
+    addCustomDhikr,
+    removeCustomDhikr,
   };
 }

@@ -1,22 +1,35 @@
 import { useState } from 'react';
-import { RotateCcw, X } from 'lucide-react';
+import { RotateCcw, X, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTasbeeh } from '@/hooks/useTasbeeh';
 
 export function TasbeehCard() {
   const { 
     session, 
-    savedDhikrs, 
+    savedDhikrs,
+    customDhikrs,
     defaultTargets,
     startSession, 
     increment, 
     reset, 
     endSession,
-    isComplete 
+    isComplete,
+    addCustomDhikr,
+    removeCustomDhikr,
   } = useTasbeeh();
 
   const [showSelector, setShowSelector] = useState(false);
   const [selectedTarget, setSelectedTarget] = useState(33);
+  const [newDhikr, setNewDhikr] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
+
+  const handleAddDhikr = () => {
+    if (newDhikr.trim()) {
+      addCustomDhikr(newDhikr.trim());
+      setNewDhikr('');
+      setShowAddForm(false);
+    }
+  };
 
   if (!session && !showSelector) {
     return (
@@ -73,20 +86,64 @@ export function TasbeehCard() {
           </div>
         </div>
 
+        {/* Add Custom Dhikr */}
+        <div className="mb-4">
+          {showAddForm ? (
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                value={newDhikr}
+                onChange={(e) => setNewDhikr(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddDhikr()}
+                placeholder="أدخل ذكراً مخصصاً..."
+                className="flex-1 bg-secondary/50 rounded-xl p-3 text-foreground text-right text-sm placeholder:text-muted-foreground/50 border-none outline-none focus:ring-2 focus:ring-primary/50"
+                dir="rtl"
+                autoFocus
+              />
+              <Button size="sm" onClick={handleAddDhikr} className="bg-primary">
+                إضافة
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => { setShowAddForm(false); setNewDhikr(''); }}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="w-full p-3 rounded-xl border-2 border-dashed border-primary/30 text-primary text-sm flex items-center justify-center gap-2 hover:bg-primary/5 transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              إضافة ذكر مخصص
+            </button>
+          )}
+        </div>
+
         {/* Dhikr Selection */}
         <div className="space-y-2 max-h-60 overflow-y-auto scrollbar-hide">
-          {savedDhikrs.map((dhikr, index) => (
-            <button
-              key={index}
-              onClick={() => {
-                startSession(dhikr, selectedTarget);
-                setShowSelector(false);
-              }}
-              className="w-full p-4 text-right bg-secondary/50 hover:bg-secondary rounded-xl transition-all text-foreground font-arabic"
-            >
-              {dhikr}
-            </button>
-          ))}
+          {savedDhikrs.map((dhikr, index) => {
+            const isCustom = customDhikrs.includes(dhikr);
+            return (
+              <div key={index} className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    startSession(dhikr, selectedTarget);
+                    setShowSelector(false);
+                  }}
+                  className="flex-1 p-4 text-right bg-secondary/50 hover:bg-secondary rounded-xl transition-all text-foreground font-arabic"
+                >
+                  {dhikr}
+                </button>
+                {isCustom && (
+                  <button
+                    onClick={() => removeCustomDhikr(dhikr)}
+                    className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     );
@@ -126,37 +183,15 @@ export function TasbeehCard() {
           }
         `}
       >
-        {/* Circular Progress */}
         <svg className="absolute inset-0 w-full h-full -rotate-90">
-          <circle
-            cx="50%"
-            cy="50%"
-            r="48%"
-            fill="none"
-            stroke="hsl(var(--background))"
-            strokeWidth="4"
-            opacity="0.3"
-          />
-          <circle
-            cx="50%"
-            cy="50%"
-            r="48%"
-            fill="none"
-            stroke="hsl(var(--foreground))"
-            strokeWidth="4"
-            strokeDasharray={`${progress * 3.02} 302`}
-            strokeLinecap="round"
-            opacity="0.5"
-          />
+          <circle cx="50%" cy="50%" r="48%" fill="none" stroke="hsl(var(--background))" strokeWidth="4" opacity="0.3" />
+          <circle cx="50%" cy="50%" r="48%" fill="none" stroke="hsl(var(--foreground))" strokeWidth="4"
+            strokeDasharray={`${progress * 3.02} 302`} strokeLinecap="round" opacity="0.5" />
         </svg>
         
         <div className="text-center">
-          <span className="text-5xl font-bold text-primary-foreground">
-            {session!.count}
-          </span>
-          <p className="text-sm text-primary-foreground/80">
-            / {session!.target}
-          </p>
+          <span className="text-5xl font-bold text-primary-foreground">{session!.count}</span>
+          <p className="text-sm text-primary-foreground/80">/ {session!.target}</p>
         </div>
       </button>
 
