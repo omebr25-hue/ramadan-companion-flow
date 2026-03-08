@@ -1,0 +1,9 @@
+{
+  "appId": "app.lovable.9925d8cdb326489f874f202753f64371",
+  "appName": "رفيق المسلم",
+  "webDir": "dist",
+  "server": {
+    "url": "https://9925d8cd-b326-489f-874f-202753f64371.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  }
+}
