@@ -56,6 +56,11 @@ const Index = () => {
           isOpen={menuOpen}
           onToggle={() => setMenuOpen(false)}
         />
+
+        <footer className="text-center py-4 pb-20 text-muted-foreground text-xs space-y-1">
+          <p>تم التطوير من قبل المهندس أبو غيث</p>
+          <a href="tel:+967778933521" className="text-primary hover:underline" dir="ltr">+967 778 933 521</a>
+        </footer>
       </div>
     </div>
   );
