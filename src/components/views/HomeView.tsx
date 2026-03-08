@@ -9,7 +9,7 @@ import { useQuranWird } from '@/hooks/useQuranWird';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useAppMode } from '@/hooks/useAppMode';
 
-type TabType = 'home' | 'quran' | 'adhkar' | 'tasbeeh' | 'accountability' | 'settings' | 'summary' | 'favorites';
+type TabType = 'home' | 'quran' | 'adhkar' | 'tasbeeh' | 'accountability' | 'settings' | 'summary' | 'favorites' | 'calendar';
 
 interface HomeViewProps {
   onNavigate: (tab: TabType) => void;
