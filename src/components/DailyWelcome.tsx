@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Moon, Sparkles } from 'lucide-react';
+import { Moon, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 
@@ -194,9 +194,8 @@ const dailyMessages: DailyMessage[] = [
 ];
 
 const getRamadanDay = (): number => {
-  // Simplified - in production use Hijri calendar
   const now = new Date();
-  const ramadanStart = new Date(2025, 2, 1); // Approximate Ramadan 2025 start
+  const ramadanStart = new Date(2025, 2, 1);
   const diff = Math.floor((now.getTime() - ramadanStart.getTime()) / (1000 * 60 * 60 * 24));
   return Math.max(1, Math.min(30, diff + 1));
 };
@@ -228,42 +227,42 @@ export function DailyWelcome() {
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-xl animate-fade-in">
-      <div className="max-w-md w-full mx-4 space-y-6">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-xl animate-fade-in overflow-y-auto">
+      <div className="w-full max-w-sm mx-4 py-6 space-y-3">
         {/* Moon & Day Counter */}
         <div className="text-center">
-          <div className="relative inline-block mb-4">
-            <Moon className="w-16 h-16 text-primary animate-pulse-glow" />
-            <Sparkles className="w-6 h-6 text-accent absolute -top-1 -right-2 animate-float" />
+          <div className="relative inline-block mb-2">
+            <Moon className="w-10 h-10 text-primary animate-pulse-glow" />
+            <Sparkles className="w-4 h-4 text-accent absolute -top-1 -right-1 animate-float" />
           </div>
-          <p className="text-muted-foreground text-sm">اليوم</p>
-          <h1 className="text-5xl font-bold gradient-text mb-1">{ramadanDay}</h1>
-          <p className="text-muted-foreground">من رمضان ١٤٤٦</p>
+          <p className="text-muted-foreground text-xs">اليوم</p>
+          <h1 className="text-3xl font-bold gradient-text">{ramadanDay}</h1>
+          <p className="text-muted-foreground text-xs">من رمضان ١٤٤٦</p>
         </div>
 
         {/* Greeting */}
-        <div className="glass-card p-6 text-center">
-          <p className="text-xl font-bold text-primary mb-2">السلام عليكم ورحمة الله 🌙</p>
-          <p className="text-muted-foreground text-sm">{todayMessage.message}</p>
+        <div className="glass-card p-3 text-center">
+          <p className="text-base font-bold text-primary mb-1">السلام عليكم ورحمة الله 🌙</p>
+          <p className="text-muted-foreground text-xs">{todayMessage.message}</p>
         </div>
 
         {/* Ayah */}
-        <div className="glass-card p-6 text-center border border-primary/20">
-          <p className="font-quran text-lg text-foreground leading-relaxed mb-3">
+        <div className="glass-card p-3 text-center border border-primary/20">
+          <p className="font-quran text-sm text-foreground leading-relaxed mb-1">
             ﴿ {todayMessage.ayah} ﴾
           </p>
-          <p className="text-xs text-muted-foreground">سورة {todayMessage.surah}</p>
+          <p className="text-[10px] text-muted-foreground">سورة {todayMessage.surah}</p>
         </div>
 
         {/* Dua */}
-        <div className="glass-card p-4 text-center bg-accent/5 border border-accent/20">
-          <p className="text-xs text-muted-foreground mb-1">🤲 دعاء اليوم</p>
-          <p className="font-arabic text-foreground text-sm">{todayMessage.dua}</p>
+        <div className="glass-card p-3 text-center bg-accent/5 border border-accent/20">
+          <p className="text-[10px] text-muted-foreground mb-0.5">🤲 دعاء اليوم</p>
+          <p className="font-arabic text-foreground text-xs">{todayMessage.dua}</p>
         </div>
 
         {/* Daily Intention */}
-        <div className="glass-card p-4">
-          <label className="text-sm text-muted-foreground block mb-2 text-center">
+        <div className="glass-card p-3">
+          <label className="text-xs text-muted-foreground block mb-1 text-center">
             ✨ نيّة اليوم
           </label>
           <input
@@ -271,7 +270,7 @@ export function DailyWelcome() {
             value={intentionInput}
             onChange={(e) => setIntentionInput(e.target.value)}
             placeholder="مثال: أختم جزءاً كاملاً اليوم..."
-            className="w-full bg-secondary/50 rounded-xl p-3 text-foreground text-center text-sm placeholder:text-muted-foreground/50 border-none outline-none focus:ring-2 focus:ring-primary/50"
+            className="w-full bg-secondary/50 rounded-lg p-2 text-foreground text-center text-xs placeholder:text-muted-foreground/50 border-none outline-none focus:ring-2 focus:ring-primary/50"
             dir="rtl"
           />
         </div>
@@ -279,7 +278,7 @@ export function DailyWelcome() {
         {/* Dismiss Button */}
         <Button
           onClick={dismiss}
-          className="w-full bg-gradient-to-l from-primary to-accent text-primary-foreground py-6 text-lg"
+          className="w-full bg-gradient-to-l from-primary to-accent text-primary-foreground py-4 text-sm"
         >
           بسم الله، نبدأ يومنا 🌟
         </Button>
